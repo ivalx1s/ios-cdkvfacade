@@ -1,0 +1,249 @@
+{
+  "configFiles": {
+  },
+  "configs": {
+    "Debug": "debug",
+    "Release": "release"
+  },
+  "name": "CDKVFacadeSample",
+  "options": {
+    "groupOrdering": [
+      {
+        "order": [
+          "Sources"
+        ]
+      }
+    ],
+    "deploymentTarget": {
+      "iOS": "15.1"
+    },
+    "groupSortPosition": "top",
+    "tabWidth": 4,
+    "indentWidth": 4,
+    "defaultConfig": "Release"
+  },
+  "packages": {
+    "cdkvfacade-ios-local": {
+      "path": "../cdkvfacade-ios/"
+    }
+  },
+  "schemes": {
+    "appios-release": {
+      "build": {
+        "targets": {
+          "app-ios": "all"
+        }
+      },
+      "run": {
+        "config": "Release",
+        "commandLineArguments": {
+          "-FIRAnalyticsDebugEnabled": "YES",
+          "-FIRDebugDisabled": "YES"
+        }
+      },
+      "test": {
+        "config": "Release",
+        "commandLineArguments": {
+          "-FIRAnalyticsDebugEnabled": "YES",
+          "-FIRDebugDisabled": "YES"
+        },
+        "gatherCoverageData": true,
+        "targets": [
+        ]
+      },
+      "profile": {
+        "config": "Release"
+      },
+      "analyze": {
+        "config": "Release"
+      },
+      "archive": {
+        "config": "Release",
+        "postActions": [
+          {
+            "script": "# Do all of the work in a subdirectory of /tmp, and use a\n# unique ID so that there's no collision with previous builds.\n\n#EXPORT_UUID=`uuidgen`\n#EXPORT_PATH=\"/tmp/$PRODUCT_NAME-$EXPORT_UUID/\"\n\n#mkdir -p \"$EXPORT_PATH\"\n\n# Xcode doesn't show run script errors in build log.\n#exec > \"$EXPORT_PATH/Xcode run script.log\" 2>&1\n\n# Use osascript(1) to present notification banners; otherwise\n# there's no progress indication until the script finishes.\n#/usr/bin/osascript -e 'display notification \"...\" with title \"Exporting application archive…\"'\n\n# Ask xcodebuild(1) to export the app. Use the export options\n# from a previous manual export that used a Developer ID.\n#/usr/bin/xcodebuild -exportArchive -archivePath \"$ARCHIVE_PATH\" -exportOptionsPlist \"$SRCROOT/exportOptionsDev.plist\" -exportPath \"$EXPORT_PATH\"\n\n# Open the folder that was created, which also signals completion.\n#open \"$EXPORT_PATH\"",
+            "name": "export_ipa",
+            "settingsTarget": "app-ios"
+          }
+        ],
+        "revealArchiveInOrganizer": true,
+        "customArchiveName": "CDKVFacadeSample-iOS-Release"
+      }
+    },
+    "appios-dev": {
+      "build": {
+        "targets": {
+          "app-ios": "all"
+        }
+      },
+      "run": {
+        "config": "Debug",
+        "commandLineArguments": {
+          "-FIRAnalyticsDebugEnabled": "YES",
+          "-FIRDebugDisabled": "YES"
+        }
+      },
+      "test": {
+        "config": "Debug",
+        "commandLineArguments": {
+          "-FIRAnalyticsDebugEnabled": "YES",
+          "-FIRDebugDisabled": "YES"
+        },
+        "gatherCoverageData": true,
+        "targets": [
+        ]
+      },
+      "profile": {
+        "config": "Debug"
+      },
+      "analyze": {
+        "config": "Debug"
+      },
+      "archive": {
+        "preActions": [
+          {
+            "script": "#hello; this is the place to add first pre-archive script",
+            "name": "pre_archive_script_n1",
+            "settingsTarget": "app-ios"
+          },
+          {
+            "script": "#hello; this is the place to add second pre-archive script",
+            "name": "pre_archive_script_n2",
+            "settingsTarget": "app-ios"
+          }
+        ],
+        "postActions": [
+          {
+            "script": "#hello; this is the place to add first post-archive script",
+            "name": "post_archive_script_n1",
+            "settingsTarget": "app-ios"
+          }
+        ],
+        "config": "Debug",
+        "revealArchiveInOrganizer": true,
+        "customArchiveName": "CDKVFacadeSample-iOS-Dev"
+      }
+    }
+  },
+  "settingGroups": {
+  "linkerSettings": {
+      "OTHER_LDFLAGS": "-lstdc++ -ObjC"
+    },
+    "compilerSettings": {
+      "CLANG_CXX_LANGUAGE_STANDARD": "c++17"
+    },
+    "localizationSettings": {
+      "SWIFT_EMIT_LOC_STRINGS": "YES",
+      "CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED": "YES"
+    },
+    "versioningSettings": {
+      "MARKETING_VERSION": "1.1.0",
+      "CURRENT_PROJECT_VERSION": "5"
+    },
+    "baseSettings": {
+    }
+  },
+  "settings": {
+    "base": {
+      "PROJECT_BUNDLE_ID_PREFIX": "dev.abff013401def098.CDKVFacadeSample-1849abffed",
+      "GENERATE_INFOPLIST_FILE": "YES",
+      "OWNER_NAME": "CDKVFacadeSampleOwner",
+      "CODE_SIGN_STYLE": "Automatic",
+      "SUPPORTS_MACCATALYST": "NO",
+      "SWIFT_VERSION": "5.4",
+      "TARGETED_DEVICE_FAMILY": "1",
+      "DEVELOPMENT_TEAM": "XXXXXXXXXX"
+    }
+  },
+  "targets": {
+    "app-ios": {
+      "entitlements": {
+        "path": "app-ios.entitlements",
+        "properties": {
+          "aps-environment": "development",
+          "com.apple.developer.icloud-container-identifiers": [
+            "iCloud.ab41fe08dd11ff01.bbff34.0194ba"
+          ],
+          "com.apple.developer.icloud-services": [
+            "CloudKit"
+          ]
+        }
+      },
+      "info": {
+        "path": "Sources/Meta/Info.plist",
+        "properties": {
+          "UIBackgroundModes": [
+            "remote-notification"
+          ],
+          "DTPlatformName": "iphoneos",
+          "DTPlatformVersion": "15.4",
+          "ITSAppUsesNonExemptEncryption": "NO",
+          "LSRequiresIPhoneOS": "YES",
+          "DTSDKName": "iphoneos15.4",
+          "CFBundlePackageType": "$(PRODUCT_BUNDLE_PACKAGE_TYPE)",
+          "CFBundleDevelopmentRegion": "$(DEVELOPMENT_LANGUAGE)",
+          "UIApplicationSupportsIndirectInputEvents": "YES",
+          "CFBundleInfoDictionaryVersion": "6.0",
+          "CFBundleSupportedPlatforms": [
+            "iPhoneOS"
+          ],
+          "CFBundleShortVersionString": "$(MARKETING_VERSION)",
+          "CFBundleVersion": "$(CURRENT_PROJECT_VERSION)",
+          "CFBundleDisplayName": "$(PRODUCT_NAME_BASE)$(TARGET_BUNDLE_ID_CONFIGURATION_SUFFIX)",
+          "UILaunchScreen": {
+          },
+          "UIUserInterfaceStyle": "Dark",
+          "UISupportedInterfaceOrientations": [
+            "UIInterfaceOrientationPortrait"
+          ]
+        }
+      },
+      "dependencies": [
+        {
+          "package": "cdkvfacade-ios-local",
+          "product": "CoreDataKVFacade",
+          "codeSign": true,
+          "embed": true
+        }
+      ],
+      "type": "application",
+      "platform": "iOS",
+      "deploymentTarget": "15.1",
+      "sources": [
+        "CDKVFacadeSample"
+      ],
+      "settings": {
+        "base": {
+          "ENABLE_BITCODE": "NO",
+          "PRODUCT_NAME": "$(PRODUCT_NAME_BASE)$(TARGET_BUNDLE_ID_CONFIGURATION_SUFFIX)",
+          "PRODUCT_NAME_BASE": "CDKVFacadeSample",
+          "PRODUCT_MODULE_NAME": "$(PRODUCT_NAME_BASE)",
+          "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon$(TARGET_BUNDLE_ID_CONFIGURATION_SUFFIX)",
+          "TARGET_BUNDLE_ID_SUFFIX": "app-ios",
+          "DEVELOPMENT_ASSET_PATHS": "CDKVFacadeSample/Assets.xcassets",
+          "HEADER_SEARCH_PATHS": "\"$(TARGET_TEMP_DIR)/../$(PROJECT_NAME).build/DerivedSources\"",
+          "SKIP_INSTALL": "NO",
+          "CODE_SIGN_IDENTITY": "Apple Development",
+          "TARGETED_DEVICE_FAMILY": "1",
+          "PRODUCT_BUNDLE_IDENTIFIER": "$(PROJECT_BUNDLE_ID_PREFIX).$(TARGET_BUNDLE_ID_SUFFIX)$(TARGET_BUNDLE_ID_CONFIGURATION_SUFFIX)"
+        },
+        "configs": {
+          "Release": {
+            "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "",
+            "TARGET_BUNDLE_ID_CONFIGURATION_SUFFIX": ""
+          },
+          "Debug": {
+            "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG",
+            "TARGET_BUNDLE_ID_CONFIGURATION_SUFFIX": "-dev"
+          }
+        },
+        "groups": [
+          "compilerSettings",
+          "linkerSettings",
+          "localizationSettings",
+          "versioningSettings",
+          "baseSettings"
+        ]
+      }
+    }
+  }}

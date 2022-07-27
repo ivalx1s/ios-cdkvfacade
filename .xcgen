@@ -1,0 +1,3 @@
+#!/bin/zsh
+
+xcodegen generate --spec CDKVFacadeSample.xcodeprojless
