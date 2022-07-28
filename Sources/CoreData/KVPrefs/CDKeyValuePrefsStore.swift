@@ -8,9 +8,9 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
     var viewContext: NSManagedObjectContext
     var bgContext: NSManagedObjectContext
 
-    public init(persistenceController: CDPersistenceManager) {
-        self.viewContext = persistenceController.viewContext
-        self.bgContext = persistenceController.backgroundContext
+    public init(persistenceManager: CDPersistenceManager) {
+        self.viewContext = persistenceManager.viewContext
+        self.bgContext = persistenceManager.backgroundContext
     }
 
     public final func read<Model>(from entity: CDKeyValueEntity.Type) throws
