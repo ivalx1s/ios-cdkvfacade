@@ -11,9 +11,9 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
     var viewContext: NSManagedObjectContext
     var bgContext: NSManagedObjectContext
 
-    public init(persistenceController: CDPersistenceManager) {
-        self.viewContext = persistenceController.viewContext
-        self.bgContext = persistenceController.backgroundContext
+    public init(persistenceManager: CDPersistenceManager) {
+        self.viewContext = persistenceManager.viewContext
+        self.bgContext = persistenceManager.backgroundContext
     }
 
     public final func read(_ key: KVEntityId) throws -> Model? {
