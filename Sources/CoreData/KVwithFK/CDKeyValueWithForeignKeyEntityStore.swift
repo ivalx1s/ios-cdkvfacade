@@ -2,12 +2,12 @@ import Foundation
 import CoreData
 
 open class CDKeyValueWithForeignKeyEntityStore<DBEntity, Model>
-        : CDKeyValueEntityStore<DBEntity, Model>, KVWithForeignEntityStore
+        : CDKeyValueEntityStore<DBEntity, Model>, KVWithForeignKeyEntityStore
         where DBEntity: CDKeyValueWithForeignKeyEntity, Model: Codable & KVWithForeignKeyIdentifiable {
 
     public typealias KVEntity = Model
 
-    public final override func createDbEntity(entity: Model, context: NSManagedObjectContext) throws {
+    public override func createDbEntity(entity: Model, context: NSManagedObjectContext) throws {
         guard let data = encodeEntity(entity: entity) else {
             throw CDError.failedToEncodeEntity
         }
