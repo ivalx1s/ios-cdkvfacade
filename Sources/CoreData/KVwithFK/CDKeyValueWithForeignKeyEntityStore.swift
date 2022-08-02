@@ -21,7 +21,7 @@ open class CDKeyValueWithForeignKeyEntityStore<DBEntity, Model>
     public final func readAll(foreignKey: KVEntityId) throws -> [KVEntity] {
         print("***** readAll start with: \(foreignKey): \(DBEntity.meta.entityName)")
         let entities: [KVEntity] = try viewContext
-                .fetch(DBEntity.fetchRequest(foreignKey: foreignKey))
+                .fetch(DBEntity.fetchRequest(predicate: .foreignKey(operation: .equals(key: foreignKey))))
                 .compactMap(decodeEntity)
 
         print("***** readAll end with: \(foreignKey): \(DBEntity.meta.entityName): \(entities.count)")
@@ -31,7 +31,7 @@ open class CDKeyValueWithForeignKeyEntityStore<DBEntity, Model>
 
     public final func deleteAll(foreignKey: KVEntityId) throws {
         print("***** deleteAll start with: \(foreignKey): \(DBEntity.meta.entityName)")
-        let _ = try? bgContext.execute(DBEntity.deleteRequest(foreignKey: foreignKey))
+        let _ = try? bgContext.execute(DBEntity.deleteRequest(predicate: .foreignKey(operation: .equals(key: foreignKey))))
         print("***** deleteAll end with: \(foreignKey): \(DBEntity.meta.entityName)")
     }
 }

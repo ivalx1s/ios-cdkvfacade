@@ -19,7 +19,7 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
         print("***** read started: \(entity.self)")
 
         let entity: Model? = try viewContext
-                .fetch(entity.fetchRequest(key: Model.key))
+                .fetch(entity.fetchRequest(predicate: CDFPredicate.key(operation: .equals(key: Model.key))))
                 .compactMap(decodeEntity).first
 
             print("***** read ended: \(entity.self) \(entity != nil)")
@@ -33,7 +33,7 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
         print("***** upsert start: \(entity.self)")
 
         let context = bgContext
-        try context.execute(entity.deleteRequest(keys: [Model.key]))
+        try context.execute(entity.deleteRequest(predicate: CDFPredicate.key(operation: .equals(key: Model.key))))
         try createDbEntity(entity: entity, item: item, context: context)
 
         print("***** upsert end: \(entity.self)")

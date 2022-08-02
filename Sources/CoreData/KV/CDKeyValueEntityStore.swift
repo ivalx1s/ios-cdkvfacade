@@ -27,7 +27,7 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
         print("***** read started: \(DBEntity.meta.entityName)")
 
         let entities: [Model] = try context
-                .fetch(DBEntity.fetchRequest(keys: entityIds))
+                .fetch(DBEntity.fetchRequest(predicate: CDFPredicate.key(operation: .containsIn(keys: entityIds))))
                 .compactMap(decodeEntity)
 
         print("***** read ended: \(DBEntity.meta.entityName) \(entities.count)")
@@ -130,12 +130,12 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
 
     public final func deleteAll() throws {
         print("***** deleteAll start: \(DBEntity.meta.entityName)")
-        let _ = try? bgContext.execute(DBEntity.deleteAllRequest())
+        let _ = try? bgContext.execute(DBEntity.deleteRequest(predicate: nil))
         print("***** deleteAll end: \(DBEntity.meta.entityName)")
     }
 
     public final func internalDelete(_ entityIds: [KVEntityId], context: NSManagedObjectContext) throws {
-        let _ = try! context.execute(DBEntity.deleteRequest(keys: entityIds))
+        let _ = try! context.execute(DBEntity.deleteRequest(predicate: .key(operation: .containsIn(keys: entityIds))))
     }
 
     public final func encodeEntity(entity: Model) -> Data? {
