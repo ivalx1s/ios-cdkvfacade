@@ -16,18 +16,18 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
         self.bgContext = persistenceManager.backgroundContext
     }
 
-    public final func read(_ key: KVEntityId) throws -> Model? {
-        try self.read([key])
+    public final func read(key: KVEntityId) throws -> Model? {
+        try self.read(keys: [key])
                 .first
     }
 
-    public final func read(_ entityIds: [KVEntityId]) throws -> [KVEntity] {
+    public final func read(keys: [KVEntityId]) throws -> [KVEntity] {
         let context = viewContext
 
         print("***** read started: \(DBEntity.meta.entityName)")
 
         let entities: [Model] = try context
-                .fetch(DBEntity.fetchRequest(predicate: CDFPredicate.key(operation: .containsIn(keys: entityIds))))
+                .fetch(DBEntity.fetchRequest(predicate: CDFPredicate.key(operation: .containsIn(keys: keys))))
                 .compactMap(decodeEntity)
 
         print("***** read ended: \(DBEntity.meta.entityName) \(entities.count)")
@@ -100,15 +100,15 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
 
     
 
-    public final func delete(_ entityIds: [KVEntityId]) throws {
+    public final func delete(keys: [KVEntityId]) throws {
         print("***** delete start: \(DBEntity.meta.entityName)")
         let context = bgContext
-        try? internalDelete(entityIds, context: context)
+        try? internalDelete(keys, context: context)
         print("***** delete end: \(DBEntity.meta.entityName)")
     }
 
-    public final func delete(_ entityId: KVEntityId) throws {
-       try self.delete([entityId])
+    public final func delete(key: KVEntityId) throws {
+       try self.delete(keys: [key])
     }
 
     public final func delete(_ entity: Model) throws {
@@ -116,7 +116,7 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
     }
 
     public final func delete(_ entities: [Model]) throws {
-        try self.delete(entities.map {$0.key})
+        try self.delete(keys: entities.map {$0.key})
     }
 
     public final func delete(where condition: (Model) -> Bool) throws {
@@ -125,7 +125,7 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
                 .filter { condition($0) }
                 .map { $0.key }
 
-        try self.delete(keysToDelete)
+        try self.delete(keys: keysToDelete)
     }
 
     public final func deleteAll() throws {
