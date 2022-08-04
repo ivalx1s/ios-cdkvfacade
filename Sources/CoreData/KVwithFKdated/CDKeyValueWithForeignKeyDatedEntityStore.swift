@@ -5,159 +5,23 @@ open class CDKeyValueWithForeignKeyDatedEntityStore<DBEntity, Model>
         : CDKeyValueWithForeignKeyEntityStore<DBEntity, Model>, KVWithForeignKeyDatedEntityStore
         where DBEntity: CDKeyValueWithForeignKeyDatedEntity, Model: Codable & KVWithForeignKeyIdentifiable & KVDated {
 
+
     public typealias KVEntity = Model
 
-    public func readAll(fks: [String], createDateGreaterThan: Date) throws -> [KVEntity] {
-        print("***** readAll start with: \(fks): \(DBEntity.meta.entityName)")
-        let entities: [KVEntity] = try viewContext
-                .fetch(DBEntity.fetchRequest(
-                        predicate: .composite(
-                                operation: .and,
-                                predicates: [
-                                    .foreignKey(operation: .containsIn(keys: fks)),
-                                    .createDate(operation: .greaterThan(date: createDateGreaterThan)),
-                                ]
-                        )
-                ))
-                .compactMap(decodeEntity)
-
-        print("***** readAll end with: \(fks): \(DBEntity.meta.entityName): \(entities.count)")
-
-        return entities
+    public func readAll(sortDescriptors: [CDSortDescriptor]) throws -> [Model] {
+        try internalReadAll(context: viewContext, predicate: .none, fetchOptions: .none, sortDescriptions: sortDescriptors)
     }
 
-    public func readAll(fks: [String], createDateLessThan: Date) throws -> [KVEntity] {
-        print("***** readAll start with: \(fks): \(DBEntity.meta.entityName)")
-        let entities: [KVEntity] = try viewContext
-                .fetch(DBEntity.fetchRequest(
-                        predicate: .composite(
-                                operation: .and,
-                                predicates: [
-                                    .foreignKey(operation: .containsIn(keys: fks)),
-                                    .createDate(operation: .lessThan(date: createDateLessThan)),
-                                ]
-                        )
-                ))
-                .compactMap(decodeEntity)
-
-        print("***** readAll end with: \(fks): \(DBEntity.meta.entityName): \(entities.count)")
-        return entities
+    public func read(predicate: CDFPredicate, sortDescriptors: [CDSortDescriptor]) throws -> [Model] {
+        try internalReadAll(context: viewContext, predicate: predicate, fetchOptions: .none, sortDescriptions: sortDescriptors)
     }
 
-    public func readAllBetween(fks: [String], start: Date, end: Date) throws -> [KVEntity] {
-        print("***** readAll start with: \(fks): \(DBEntity.meta.entityName)")
-        let entities: [KVEntity] = try viewContext
-                .fetch(DBEntity.fetchRequest(
-                        predicate: .composite(
-                                operation: .and,
-                                predicates: [
-                                    .foreignKey(operation: .containsIn(keys: fks)),
-                                    .createDate(operation: .between(start: start, end: end)),
-                                ]
-                        )
-                ))
-                .compactMap(decodeEntity)
-
-        print("***** readAll end with: \(fks): \(DBEntity.meta.entityName): \(entities.count)")
-        return entities
+    public func read(fetchOptions: CDFetchOptions, sortDescriptors: [CDSortDescriptor]) throws -> [Model] {
+        try internalReadAll(context: viewContext, predicate: .none, fetchOptions: fetchOptions, sortDescriptions: sortDescriptors)
     }
 
-    public func readAll(createDateGreaterThan: Date) throws -> [KVEntity] {
-        print("***** readAll start: \(DBEntity.meta.entityName)")
-        let entities: [KVEntity] = try viewContext
-                .fetch(DBEntity.fetchRequest(
-                        predicate: .createDate(operation: .greaterThan(date: createDateGreaterThan))
-                ))
-                .compactMap(decodeEntity)
-
-        print("***** readAll end: \(DBEntity.meta.entityName): \(entities.count)")
-
-        return entities
-
-    }
-
-    public func readAll(createDateLessThan: Date) throws -> [KVEntity] {
-        print("***** readAll start: \(DBEntity.meta.entityName)")
-        let entities: [KVEntity] = try viewContext
-                .fetch(DBEntity.fetchRequest(
-                        predicate: .createDate(operation: .lessThan(date: createDateLessThan))
-                ))
-                .compactMap(decodeEntity)
-
-        print("***** readAll end: \(DBEntity.meta.entityName): \(entities.count)")
-
-        return entities
-    }
-
-    public func readAllBetween(start: Date, end: Date) throws -> [KVEntity] {
-        print("***** readAll start: \(DBEntity.meta.entityName)")
-        let entities: [KVEntity] = try viewContext
-                .fetch(DBEntity.fetchRequest(
-                        predicate: .createDate(operation: .between(start: start, end: end))
-                ))
-                .compactMap(decodeEntity)
-
-        print("***** readAll end: \(DBEntity.meta.entityName): \(entities.count)")
-
-        return entities
-    }
-
-    public func readAll(fk: String, createDateGreaterThan: Date) throws -> [KVEntity] {
-        print("***** readAll start with: \(fk): \(DBEntity.meta.entityName)")
-        let entities: [KVEntity] = try viewContext
-                .fetch(DBEntity.fetchRequest(
-                        predicate: .composite(
-                                operation: .and,
-                                predicates: [
-                                    .foreignKey(operation: .equals(key: fk)),
-                                    .createDate(operation: .greaterThan(date: createDateGreaterThan)),
-                                ]
-                        )
-                ))
-                .compactMap(decodeEntity)
-
-        print("***** readAll end with: \(fk): \(DBEntity.meta.entityName): \(entities.count)")
-
-        return entities
-    }
-
-    public func readAll(fk: String, createDateLessThan: Date) throws -> [KVEntity] {
-        print("***** readAll start with: \(fk): \(DBEntity.meta.entityName)")
-        let entities: [KVEntity] = try viewContext
-                .fetch(DBEntity.fetchRequest(
-                        predicate: .composite(
-                                operation: .and,
-                                predicates: [
-                                    .foreignKey(operation: .equals(key: fk)),
-                                    .createDate(operation: .lessThan(date: createDateLessThan)),
-                                ]
-                        )
-                ))
-                .compactMap(decodeEntity)
-
-        print("***** readAll end with: \(fk): \(DBEntity.meta.entityName): \(entities.count)")
-
-        return entities
-    }
-
-    public func readAllBetween(fk: String, start: Date, end: Date) throws -> [KVEntity] {
-        print("***** readAll start with: \(fk): \(DBEntity.meta.entityName)")
-        let entities: [KVEntity] = try viewContext
-                .fetch(DBEntity.fetchRequest(
-                        predicate: .composite(
-                                operation: .and,
-                                predicates: [
-                                    .foreignKey(operation: .equals(key: fk)),
-                                    .createDate(operation: .between(start: start, end: end)),
-                                ]
-                        )
-                ))
-                .compactMap(decodeEntity)
-
-        print("***** readAll end with: \(fk): \(DBEntity.meta.entityName): \(entities.count)")
-
-        return entities
-
+    public func read(predicate: CDFPredicate, fetchOptions: CDFetchOptions, sortDescriptors: [CDSortDescriptor]) throws -> [KVEntity] {
+        try internalReadAll(context: viewContext, predicate: predicate, fetchOptions: fetchOptions, sortDescriptions: sortDescriptors)
     }
 
     public override func createDbEntity(entity: Model, context: NSManagedObjectContext) throws {

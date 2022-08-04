@@ -3,6 +3,7 @@ import CoreData
 
 open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
         where DBEntity: CDKeyValueEntity, Model: Codable & KVIdentifiable {
+
     public typealias KVEntity = Model
 
     private let decoder: JSONDecoder = .init()
@@ -16,23 +17,20 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
         self.bgContext = persistenceManager.backgroundContext
     }
 
-    public final func read(key: KVEntityId) throws -> Model? {
-        try self.read(keys: [key])
-                .first
+    public func read(predicate: CDFPredicate) throws -> [KVEntity] {
+        try internalReadAll(context: viewContext, predicate: predicate, fetchOptions: .none, sortDescriptions: [])
     }
 
-    public final func read(keys: [KVEntityId]) throws -> [KVEntity] {
-        let context = viewContext
+    public func read(predicate: CDFPredicate, fetchOptions: CDFetchOptions) throws -> [KVEntity] {
+        try internalReadAll(context: viewContext, predicate: predicate, fetchOptions: fetchOptions, sortDescriptions: [])
+    }
 
-        print("***** read started: \(DBEntity.meta.entityName)")
+    public final func readAll() throws -> [Model] {
+        try internalReadAll(context: viewContext, predicate: .none, fetchOptions: .none, sortDescriptions: [])
+    }
 
-        let entities: [Model] = try context
-                .fetch(DBEntity.fetchRequest(predicate: CDFPredicate.key(operation: .containsIn(keys: keys))))
-                .compactMap(decodeEntity)
-
-        print("***** read ended: \(DBEntity.meta.entityName) \(entities.count)")
-
-        return entities
+    public final func read(fetchOptions: CDFetchOptions) throws -> [Model] {
+        try internalReadAll(context: viewContext, predicate: .none, fetchOptions: fetchOptions, sortDescriptions: [])
     }
 
     public final func read(where condition: (Model) -> Bool) throws -> [Model] {
@@ -42,28 +40,26 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
         return result
     }
 
-    public final func readAll() throws -> [Model] {
+    func internalReadAll(context: NSManagedObjectContext, predicate: CDFPredicate?, fetchOptions: CDFetchOptions?, sortDescriptions: [CDSortDescriptor]) throws -> [Model] {
         print("***** read started: \(DBEntity.meta.entityName)")
-        let entities: [Model]  = try internalReadAll(context: viewContext)
+
+        let entities: [Model] = try context
+            .fetch(DBEntity.fetchRequest(predicate: predicate, fetchOptions: fetchOptions, sortDescriptors: sortDescriptions))
+            .compactMap(decodeEntity)
+
         print("***** read ended: \(DBEntity.meta.entityName) \(entities.count)")
 
         return entities
     }
 
-    public final func internalReadAll(context: NSManagedObjectContext) throws -> [Model] {
-        try context
-                .fetch(DBEntity.fetchRequest())
-                .compactMap(decodeEntity)
-    }
-
     @available(iOS 15, macOS 12, *)
     public final func insert(_ entities: [Model]) throws {
         let context = bgContext
-        try internalInsert(entities, context: context)
+        try internalInsert(context: context, entities: entities)
     }
 
     @available(iOS 15, macOS 12, *)
-    private func internalInsert(_ entities: [Model], context: NSManagedObjectContext) throws {
+    private func internalInsert(context: NSManagedObjectContext, entities: [Model]) throws {
         try context.performAndWait {
             print("***** insert started: \(DBEntity.meta.entityName)")
             try entities
@@ -76,39 +72,26 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
     }
 
     public final func upsert(_ entity: Model) throws {
-        print("***** upsert start: \(DBEntity.meta.entityName)")
-        let context = bgContext
-        try internalDelete([entity.key], context: context)
-        try internalInsert([entity], context: context)
-        print("***** upsert end: \(DBEntity.meta.entityName)")
+        try upsert([entity])
     }
 
     public final func upsert(_ entities: [Model]) throws {
         print("***** upsert start: \(DBEntity.meta.entityName)")
         let context = bgContext
         try internalDelete(
-                entities.map{$0.key},
-                context: context
+                context: context,
+                predicate: .key(operation: .containedIn(keys: entities.map {$0.key}))
         )
         try internalInsert(
-                entities,
-                context: context
+                context: context,
+                entities: entities
         )
 
         print("***** upsert end: \(DBEntity.meta.entityName)")
     }
 
-    
-
-    public final func delete(keys: [KVEntityId]) throws {
-        print("***** delete start: \(DBEntity.meta.entityName)")
-        let context = bgContext
-        try? internalDelete(keys, context: context)
-        print("***** delete end: \(DBEntity.meta.entityName)")
-    }
-
-    public final func delete(key: KVEntityId) throws {
-       try self.delete(keys: [key])
+    public func delete(predicate: CDFPredicate) throws {
+        try internalDelete(context: bgContext, predicate: predicate)
     }
 
     public final func delete(_ entity: Model) throws {
@@ -116,26 +99,25 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
     }
 
     public final func delete(_ entities: [Model]) throws {
-        try self.delete(keys: entities.map {$0.key})
+        try internalDelete(context: bgContext, predicate: .key(operation: .containedIn(keys: entities.map {$0.key})))
     }
 
     public final func delete(where condition: (Model) -> Bool) throws {
         print("***** delete start: \(DBEntity.meta.entityName)")
-        let keysToDelete = try readAll()
+        let entitiesToDelete = try readAll()
                 .filter { condition($0) }
-                .map { $0.key }
 
-        try self.delete(keys: keysToDelete)
+        try self.delete(entitiesToDelete)
     }
 
     public final func deleteAll() throws {
-        print("***** deleteAll start: \(DBEntity.meta.entityName)")
-        let _ = try? bgContext.execute(DBEntity.deleteRequest(predicate: nil))
-        print("***** deleteAll end: \(DBEntity.meta.entityName)")
+        try internalDelete(context: bgContext, predicate: .none)
     }
 
-    public final func internalDelete(_ entityIds: [KVEntityId], context: NSManagedObjectContext) throws {
-        let _ = try! context.execute(DBEntity.deleteRequest(predicate: .key(operation: .containsIn(keys: entityIds))))
+    private final func internalDelete(context: NSManagedObjectContext, predicate: CDFPredicate?) throws {
+        print("***** deleteAll start: \(DBEntity.meta.entityName)")
+        try! context.execute(DBEntity.deleteRequest(predicate: predicate))
+        print("***** deleteAll end: \(DBEntity.meta.entityName)")
     }
 
     public final func encodeEntity(entity: Model) -> Data? {
@@ -159,4 +141,5 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
         newItem.key = entity.key
         newItem.value = data
     }
+
 }

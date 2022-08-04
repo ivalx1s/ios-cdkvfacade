@@ -12,14 +12,16 @@ public protocol KVEntityStore {
     func insert(_ entities: [KVEntity]) throws
     func upsert(_ entity: KVEntity) throws
     func upsert(_ entities: [KVEntity]) throws
-    func read(key: KVEntityId) throws -> KVEntity?
-    func read(keys: [KVEntityId]) throws -> [KVEntity]
-    func read(where condition: (KVEntity)->Bool) throws -> [KVEntity]
+
     func readAll() throws -> [KVEntity]
-    func delete(key: KVEntityId) throws
-    func delete(keys: [KVEntityId]) throws
+    func read(predicate: CDFPredicate) throws -> [KVEntity]
+    func read(fetchOptions: CDFetchOptions) throws -> [KVEntity]
+    func read(predicate: CDFPredicate, fetchOptions: CDFetchOptions) throws -> [KVEntity]
+    func read(where condition: (KVEntity)->Bool) throws -> [KVEntity] // note: it's not optimized
+
+    func deleteAll() throws
+    func delete(predicate: CDFPredicate) throws
     func delete(_ entity: KVEntity) throws
     func delete(_ entities: [KVEntity]) throws
     func delete(where condition: (KVEntity)->Bool) throws
-    func deleteAll() throws
 }

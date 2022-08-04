@@ -23,7 +23,7 @@ public struct CDPredicateBuilder {
             switch operation {
             case let .equals(key):
                 return NSPredicate(format: "key == %@", key)
-            case let .containsIn(keys):
+            case let .containedIn(keys):
                 return NSPredicate(format: "key IN %@", keys)
             }
 
@@ -31,14 +31,14 @@ public struct CDPredicateBuilder {
             switch operation {
             case let .equals(key):
                 return NSPredicate(format: "foreignKey == %@", key)
-            case let .containsIn(keys):
+            case let .containedIn(keys):
                 return NSPredicate(format: "foreignKey IN %@", keys)
             }
 
         case let .createDate(operation):
             switch operation {
-            case let .between(start, end):
-                return NSPredicate(format: "createdAt >= %@  AND createdAt <= %@ ", argumentArray: [start, end])
+            case let .between(range):
+                return NSPredicate(format: "createdAt >= %@  AND createdAt <= %@ ", argumentArray: [range.start, range.end])
             case let .greaterThan(date):
                 return NSPredicate(format: "createdAt > %@", argumentArray: [date])
             case let .greaterOrEqual(date):

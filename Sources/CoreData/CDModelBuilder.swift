@@ -74,37 +74,37 @@ public enum CDModelBuilder {
 
     private static var keyAttr: NSAttributeDescription {
         let attr = NSAttributeDescription()
-        attr.name = "key"
+        attr.name = CDConsts.keyFieldName
         attr.attributeType = .stringAttributeType
         attr.isOptional = false
         attr.isIndexed  = true
-        attr.defaultValue = "undefined"
+        attr.defaultValue = CDConsts.keyDefaultValue
         return attr
     }
 
     private static var valueAttr: NSAttributeDescription {
         let attr = NSAttributeDescription()
-        attr.name = "value"
+        attr.name = CDConsts.valueFieldName
         attr.attributeType = .binaryDataAttributeType
         attr.isOptional = false
         attr.isIndexed = false
-        attr.defaultValue = Data()
+        attr.defaultValue = CDConsts.valueDefaultValue
         return attr
     }
 
     private static var fkAttr: NSAttributeDescription {
         let attr = NSAttributeDescription()
-        attr.name = "foreignKey"
+        attr.name = CDConsts.foreignKeyFieldName
         attr.attributeType = .stringAttributeType
         attr.isOptional = false
         attr.isIndexed  = true
-        attr.defaultValue = "undefined"
+        attr.defaultValue = CDConsts.keyDefaultValue
         return attr
     }
 
     private static var createDateAttr: NSAttributeDescription {
         let attr = NSAttributeDescription()
-        attr.name = "createdAt"
+        attr.name = CDConsts.createdAtFieldName
         attr.attributeType = .dateAttributeType
         attr.isOptional = false
         attr.isIndexed  = true
