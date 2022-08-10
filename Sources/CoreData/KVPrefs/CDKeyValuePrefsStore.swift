@@ -2,6 +2,8 @@ import Foundation
 import CoreData
 
 open class CDKeyValuePrefsStore: KeyValuePrefsStore {
+    public typealias KVEntity = AnyKVPref
+
     private let decoder: JSONDecoder = .init()
     private let encoder: JSONEncoder = .init()
 
@@ -14,7 +16,7 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
     }
 
     public final func read<Model>(from entity: CDKeyValueEntity.Type) throws
-            -> Model? where Model: Codable & KVPrefIdentifiable {
+            -> Model? where Model: AnyKVPref {
 
         print("***** read started: \(entity.self)")
 
@@ -28,7 +30,7 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
     }
 
     public final func upsert<Model>(entity: CDKeyValueEntity.Type, _ item: Model) throws
-            where Model: Codable & KVPrefIdentifiable {
+            where Model: AnyKVPref {
 
         print("***** upsert start: \(entity.self)")
 
@@ -39,7 +41,8 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
         print("***** upsert end: \(entity.self)")
     }
 
-    private final func createDbEntity<Model>(entity: CDKeyValueEntity.Type, item: Model, context: NSManagedObjectContext) throws where Model: KVPrefIdentifiable & Codable {
+    private func createDbEntity<Model>(entity: CDKeyValueEntity.Type, item: Model, context: NSManagedObjectContext) throws
+            where Model: AnyKVPref {
 
         guard let data = encodeEntity(item: item) else {
             throw CDError.failedToEncodeEntity
@@ -52,11 +55,13 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
         try context.save()
     }
 
-    private final func encodeEntity<Model>(item: Model) -> Data? where Model: Encodable {
+    private final func encodeEntity<Model>(item: Model) -> Data?
+            where Model: Encodable {
         try? encoder.encode(item)
     }
 
-    private final func decodeEntity<Model>(_ obj: Any) throws -> Model? where Model: Decodable {
+    private final func decodeEntity<Model>(_ obj: Any) throws -> Model?
+            where Model: Decodable {
         guard let entity = obj as? CDKeyValueEntity else {
             throw CDError.failedToDecodeEntity
         }

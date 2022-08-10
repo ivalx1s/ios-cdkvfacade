@@ -15,6 +15,7 @@ public enum CDModelBuilder {
         case .kvWithFk: return kvWithFKEntity(name: entityName)
         case .kvWithFkDated: return kvWithFkDatedEntity(name: entityName)
         case .kvPrefs: return kvEntity(name: entityName)
+        case .kvPrefsDated: return kvDatedEntity(name: entityName)
         }
     }
 
