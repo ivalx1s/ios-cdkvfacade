@@ -9,6 +9,8 @@ public protocol KeyValuePrefsStore {
     func read<Model>(from entity: CDKeyValueEntity.Type) throws
             -> Model? where Model: AnyKVPref
 
-    func upsert<Model>(entity: CDKeyValueEntity.Type, _ item: Model) throws
+    func upsert<Model>(to entity: CDKeyValueEntity.Type, _ item: Model) throws
             where Model: AnyKVPref
+
+    func delete(by key: KVEntityId, from entity: CDKeyValueEntity.Type) throws
 }

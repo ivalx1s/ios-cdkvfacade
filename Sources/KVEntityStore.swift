@@ -6,6 +6,8 @@ public protocol KVIdentifiable {
     var key: KVEntityId { get }
 }
 
+// public typealias KVEntity = Codable & KVIdentifiable
+
 public protocol KVEntityStore {
     associatedtype KVEntity: Codable, KVIdentifiable
 

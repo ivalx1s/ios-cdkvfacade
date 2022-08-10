@@ -25,25 +25,25 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
         try internalReadAll(context: viewContext, predicate: predicate, fetchOptions: fetchOptions, sortDescriptions: [])
     }
 
-    public final func readAll() throws -> [KVEntity] {
+    public final func readAll() throws -> [Model] {
         try internalReadAll(context: viewContext, predicate: .none, fetchOptions: .none, sortDescriptions: [])
     }
 
-    public final func read(fetchOptions: CDFetchOptions) throws -> [KVEntity] {
+    public final func read(fetchOptions: CDFetchOptions) throws -> [Model] {
         try internalReadAll(context: viewContext, predicate: .none, fetchOptions: fetchOptions, sortDescriptions: [])
     }
 
-    public final func read(where condition: (KVEntity) -> Bool) throws -> [KVEntity] {
+    public final func read(where condition: (Model) -> Bool) throws -> [Model] {
         let result = try readAll()
                 .filter { condition($0) }
 
         return result
     }
 
-    func internalReadAll(context: NSManagedObjectContext, predicate: CDFPredicate?, fetchOptions: CDFetchOptions?, sortDescriptions: [CDSortDescriptor]) throws -> [KVEntity] {
+    func internalReadAll(context: NSManagedObjectContext, predicate: CDFPredicate?, fetchOptions: CDFetchOptions?, sortDescriptions: [CDSortDescriptor]) throws -> [Model] {
         print("***** read started: \(DBEntity.meta.entityName)")
 
-        let entities: [KVEntity] = try context
+        let entities: [Model] = try context
             .fetch(DBEntity.fetchRequest(predicate: predicate, fetchOptions: fetchOptions, sortDescriptors: sortDescriptions))
             .compactMap(decodeEntity)
 
@@ -53,13 +53,13 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
     }
 
     @available(iOS 15, macOS 12, *)
-    public final func insert(_ entities: [KVEntity]) throws {
+    public final func insert(_ entities: [Model]) throws {
         let context = bgContext
         try internalInsert(context: context, entities: entities)
     }
 
     @available(iOS 15, macOS 12, *)
-    private func internalInsert(context: NSManagedObjectContext, entities: [KVEntity]) throws {
+    private func internalInsert(context: NSManagedObjectContext, entities: [Model]) throws {
         try context.performAndWait {
             print("***** insert started: \(DBEntity.meta.entityName)")
             try entities
@@ -71,11 +71,11 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
         }
     }
 
-    public final func upsert(_ entity: KVEntity) throws {
+    public final func upsert(_ entity: Model) throws {
         try upsert([entity])
     }
 
-    public final func upsert(_ entities: [KVEntity]) throws {
+    public final func upsert(_ entities: [Model]) throws {
         print("***** upsert start: \(DBEntity.meta.entityName)")
         let context = bgContext
         try internalDelete(
@@ -94,15 +94,15 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
         try internalDelete(context: bgContext, predicate: predicate)
     }
 
-    public final func delete(_ entity: KVEntity) throws {
+    public final func delete(_ entity: Model) throws {
         try delete([entity])
     }
 
-    public final func delete(_ entities: [KVEntity]) throws {
+    public final func delete(_ entities: [Model]) throws {
         try internalDelete(context: bgContext, predicate: .key(operation: .containedIn(keys: entities.map {$0.key})))
     }
 
-    public final func delete(where condition: (KVEntity) -> Bool) throws {
+    public final func delete(where condition: (Model) -> Bool) throws {
         print("***** delete start: \(DBEntity.meta.entityName)")
         let entitiesToDelete = try readAll()
                 .filter { condition($0) }
@@ -120,19 +120,19 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
         print("***** deleteAll end: \(DBEntity.meta.entityName)")
     }
 
-    public final func encodeEntity(entity: KVEntity) -> Data? {
+    public final func encodeEntity(entity: Model) -> Data? {
         try? encoder.encode(entity)
     }
 
-    public final func decodeEntity(_ dbObject: Any) -> KVEntity? {
+    public final func decodeEntity(_ dbObject: Any) -> Model? {
         guard let entity = dbObject as? DBEntity else {
             return nil
         }
 
-        return try? self.decoder.decode(KVEntity.self, from: entity.value)
+        return try? self.decoder.decode(Model.self, from: entity.value)
     }
     
-    open func createDbEntity(entity: KVEntity, context: NSManagedObjectContext) throws {
+    open func createDbEntity(entity: Model, context: NSManagedObjectContext) throws {
         guard let data = encodeEntity(entity: entity) else {
             throw CDError.failedToEncodeEntity
         }
@@ -141,4 +141,5 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
         newItem.key = entity.key
         newItem.value = data
     }
+
 }

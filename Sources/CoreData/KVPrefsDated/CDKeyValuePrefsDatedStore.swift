@@ -47,6 +47,12 @@ open class CDKeyValuePrefsDatedStore: KeyValuePrefsDatedStore {
         print("***** upsert end: \(entity.self)")
     }
 
+    public final func delete(by key: KVEntityId, from entity: CDKeyValueEntity.Type) throws {
+        print("***** delete by key \(key) start: \(entity.self)")
+        try bgContext.execute(entity.deleteRequest(predicate: CDFPredicate.key(operation: .equals(key: key))))
+        print("***** delete by key \(key) end: \(entity.self)")
+    }
+
     private final func internalRead<Model>(from entity: CDKeyValueDatedEntity.Type, predicate: CDFPredicate) throws
             -> Model? where Model: KVEntity {
 

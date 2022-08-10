@@ -11,4 +11,6 @@ public protocol KeyValuePrefsDatedStore {
 
     func upsert<KVEntity>(entity: CDKeyValueDatedEntity.Type, _ item: KVEntity) throws
             where KVEntity: AnyKVPrefDated
+
+    func delete(by key: KVEntityId, from entity: CDKeyValueEntity.Type) throws
 }

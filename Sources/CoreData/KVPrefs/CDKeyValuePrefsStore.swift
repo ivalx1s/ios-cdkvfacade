@@ -29,7 +29,7 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
         return entity
     }
 
-    public final func upsert<Model>(entity: CDKeyValueEntity.Type, _ item: Model) throws
+    public final func upsert<Model>(to entity: CDKeyValueEntity.Type, _ item: Model) throws
             where Model: AnyKVPref {
 
         print("***** upsert start: \(entity.self)")
@@ -39,6 +39,12 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
         try createDbEntity(entity: entity, item: item, context: context)
 
         print("***** upsert end: \(entity.self)")
+    }
+
+    public final func delete(by key: KVEntityId, from entity: CDKeyValueEntity.Type) throws {
+        print("***** delete by key \(key) start: \(entity.self)")
+        try bgContext.execute(entity.deleteRequest(predicate: CDFPredicate.key(operation: .equals(key: key))))
+        print("***** delete by key \(key) end: \(entity.self)")
     }
 
     private func createDbEntity<Model>(entity: CDKeyValueEntity.Type, item: Model, context: NSManagedObjectContext) throws
