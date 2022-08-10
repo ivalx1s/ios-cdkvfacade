@@ -11,7 +11,6 @@ public protocol KVIdentifiable {
 public protocol KVEntityStore {
     associatedtype KVEntity: Codable, KVIdentifiable
 
-    func insert(_ entities: [KVEntity]) throws
     func upsert(_ entity: KVEntity) throws
     func upsert(_ entities: [KVEntity]) throws
 

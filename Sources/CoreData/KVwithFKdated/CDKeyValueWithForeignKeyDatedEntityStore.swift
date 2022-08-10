@@ -24,7 +24,7 @@ open class CDKeyValueWithForeignKeyDatedEntityStore<DBEntity, Model>
         try internalReadAll(context: viewContext, predicate: predicate, fetchOptions: fetchOptions, sortDescriptions: sortDescriptors)
     }
 
-    public override func createDbEntity(entity: Model, context: NSManagedObjectContext) throws {
+    public override func createDbEntity(entity: KVEntity, context: NSManagedObjectContext) throws {
         guard let data = encodeEntity(entity: entity) else {
             throw CDError.failedToEncodeEntity
         }

@@ -16,7 +16,7 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
     }
 
     public final func read<Model>(from entity: CDKeyValueEntity.Type) throws
-            -> Model? where Model: AnyKVPref {
+            -> Model? where Model: KVEntity {
 
         print("***** read started: \(entity.self)")
 
@@ -30,7 +30,7 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
     }
 
     public final func upsert<Model>(to entity: CDKeyValueEntity.Type, _ item: Model) throws
-            where Model: AnyKVPref {
+            where Model: KVEntity {
 
         print("***** upsert start: \(entity.self)")
 
@@ -48,7 +48,7 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
     }
 
     private func createDbEntity<Model>(entity: CDKeyValueEntity.Type, item: Model, context: NSManagedObjectContext) throws
-            where Model: AnyKVPref {
+            where Model: KVEntity {
 
         guard let data = encodeEntity(item: item) else {
             throw CDError.failedToEncodeEntity
