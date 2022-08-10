@@ -8,15 +8,15 @@ open class CDKeyValueWithForeignKeyDatedEntityStore<DBEntity, Model>
 
     public typealias KVEntity = Model
 
-    public func readAll(sortDescriptors: [CDSortDescriptor]) throws -> [Model] {
+    public func readAll(sortDescriptors: [CDSortDescriptor]) throws -> [KVEntity] {
         try internalReadAll(context: viewContext, predicate: .none, fetchOptions: .none, sortDescriptions: sortDescriptors)
     }
 
-    public func read(predicate: CDFPredicate, sortDescriptors: [CDSortDescriptor]) throws -> [Model] {
+    public func read(predicate: CDFPredicate, sortDescriptors: [CDSortDescriptor]) throws -> [KVEntity] {
         try internalReadAll(context: viewContext, predicate: predicate, fetchOptions: .none, sortDescriptions: sortDescriptors)
     }
 
-    public func read(fetchOptions: CDFetchOptions, sortDescriptors: [CDSortDescriptor]) throws -> [Model] {
+    public func read(fetchOptions: CDFetchOptions, sortDescriptors: [CDSortDescriptor]) throws -> [KVEntity] {
         try internalReadAll(context: viewContext, predicate: .none, fetchOptions: fetchOptions, sortDescriptions: sortDescriptors)
     }
 
