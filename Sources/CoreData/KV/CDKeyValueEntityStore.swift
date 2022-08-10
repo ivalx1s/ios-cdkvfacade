@@ -70,7 +70,6 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
     }
 
     public final func upsert(_ entities: [KVEntity]) throws {
-        print("***** upsert start: \(DBEntity.meta.entityName)")
         let context = bgContext
         try internalDelete(
                 context: context,
@@ -80,8 +79,6 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
                 context: context,
                 entities: entities
         )
-
-        print("***** upsert end: \(DBEntity.meta.entityName)")
     }
 
     public func delete(predicate: CDFPredicate) throws {
@@ -97,7 +94,6 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
     }
 
     public final func delete(where condition: (KVEntity) -> Bool) throws {
-        print("***** delete start: \(DBEntity.meta.entityName)")
         let entitiesToDelete = try readAll()
                 .filter { condition($0) }
 
