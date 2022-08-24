@@ -71,10 +71,11 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
 
     public final func upsert(_ entities: [KVEntity]) throws {
         let context = bgContext
-        try internalDelete(
-                context: context,
-                predicate: .key(operation: .containedIn(keys: entities.map {$0.key}))
-        )
+        #warning("internalDelete in upsert method hangs the app without any debugging clues")
+//        try internalDelete(
+//                context: context,
+//                predicate: .key(operation: .containedIn(keys: entities.map {$0.key}))
+//        )
         try internalInsert(
                 context: context,
                 entities: entities
