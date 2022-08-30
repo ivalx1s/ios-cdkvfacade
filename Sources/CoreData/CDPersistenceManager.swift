@@ -15,15 +15,15 @@ public final class CDPersistenceManager {
         container.viewContext.automaticallyMergesChangesFromParent = true
     }
 
-    lazy var viewContext: NSManagedObjectContext = {
+    var viewContext: NSManagedObjectContext {
         container.viewContext
-    }()
+    }
 
-    lazy var backgroundContext: NSManagedObjectContext = {
+    var backgroundContext: NSManagedObjectContext {
         let newBgContext = container.newBackgroundContext()
         newBgContext.automaticallyMergesChangesFromParent = true
         return newBgContext
-    }()
+    }
 
     private static func storeURL(for dbName: String) -> URL {
         let urls = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)

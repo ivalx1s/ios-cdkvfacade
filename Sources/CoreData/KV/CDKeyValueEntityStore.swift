@@ -9,12 +9,12 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
     private let decoder: JSONDecoder = .init()
     private let encoder: JSONEncoder = .init()
 
-    var viewContext: NSManagedObjectContext
-    var bgContext: NSManagedObjectContext
+    var viewContext: NSManagedObjectContext { persistenceManager.viewContext }
+    var bgContext: NSManagedObjectContext { persistenceManager.backgroundContext }
+    private var persistenceManager: CDPersistenceManager
 
     public init(persistenceManager: CDPersistenceManager) {
-        self.viewContext = persistenceManager.viewContext
-        self.bgContext = persistenceManager.backgroundContext
+        self.persistenceManager = persistenceManager
     }
 
     public func read(predicate: CDFPredicate) throws -> [KVEntity] {
