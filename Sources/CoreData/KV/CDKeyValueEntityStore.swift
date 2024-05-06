@@ -12,28 +12,29 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
     var viewContext: NSManagedObjectContext { persistenceManager.viewContext }
     var bgContext: NSManagedObjectContext { persistenceManager.backgroundContext }
     private var persistenceManager: CDPersistenceManager
+    private var cryptoProvider: ICryptoProvider? { persistenceManager.cryptoProvider }
 
     public init(persistenceManager: CDPersistenceManager) {
         self.persistenceManager = persistenceManager
     }
 
-    public func read(predicate: CDFPredicate) throws -> [KVEntity] {
+    open func read(predicate: CDFPredicate) throws -> [KVEntity] {
         try internalReadAll(context: viewContext, predicate: predicate, fetchOptions: .none, sortDescriptions: [])
     }
 
-    public func read(predicate: CDFPredicate, fetchOptions: CDFetchOptions) throws -> [KVEntity] {
+    open func read(predicate: CDFPredicate, fetchOptions: CDFetchOptions) throws -> [KVEntity] {
         try internalReadAll(context: viewContext, predicate: predicate, fetchOptions: fetchOptions, sortDescriptions: [])
     }
 
-    public final func readAll() throws -> [KVEntity] {
+    open func readAll() throws -> [KVEntity] {
         try internalReadAll(context: viewContext, predicate: .none, fetchOptions: .none, sortDescriptions: [])
     }
 
-    public final func read(fetchOptions: CDFetchOptions) throws -> [KVEntity] {
+    open func read(fetchOptions: CDFetchOptions) throws -> [KVEntity] {
         try internalReadAll(context: viewContext, predicate: .none, fetchOptions: fetchOptions, sortDescriptions: [])
     }
 
-    public final func read(where condition: (KVEntity) -> Bool) throws -> [KVEntity] {
+    open func read(where condition: (KVEntity) -> Bool) throws -> [KVEntity] {
         let result = try readAll()
                 .filter { condition($0) }
 
@@ -65,13 +66,14 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
         }
     }
 
-    public final func upsert(_ entity: KVEntity) throws {
+    open func upsert(_ entity: KVEntity) throws {
         try upsert([entity])
     }
 
-    public final func upsert(_ entities: [KVEntity]) throws {
+    open func upsert(_ entities: [KVEntity]) throws {
+        guard !entities.isEmpty else { return }
+
         let context = bgContext
-        #warning("internalDelete in upsert method hangs the app without any debugging clues")
         try internalDelete(
                 context: context,
                 predicate: .key(operation: .containedIn(keys: entities.map {$0.key}))
@@ -82,26 +84,28 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
         )
     }
 
-    public func delete(predicate: CDFPredicate) throws {
+    open func delete(predicate: CDFPredicate) throws {
         try internalDelete(context: bgContext, predicate: predicate)
     }
 
-    public final func delete(_ entity: KVEntity) throws {
+    open func delete(_ entity: KVEntity) throws {
         try delete([entity])
     }
 
-    public final func delete(_ entities: [KVEntity]) throws {
+    open func delete(_ entities: [KVEntity]) throws {
+        guard !entities.isEmpty else { return }
+
         try internalDelete(context: bgContext, predicate: .key(operation: .containedIn(keys: entities.map {$0.key})))
     }
 
-    public final func delete(where condition: (KVEntity) -> Bool) throws {
+    open func delete(where condition: (KVEntity) -> Bool) throws {
         let entitiesToDelete = try readAll()
                 .filter { condition($0) }
 
         try self.delete(entitiesToDelete)
     }
 
-    public final func deleteAll() throws {
+    open func deleteAll() throws {
         try internalDelete(context: bgContext, predicate: .none)
     }
 
@@ -111,16 +115,22 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
         print("***** deleteAll end: \(DBEntity.meta.entityName)")
     }
 
-    public final func encodeEntity(entity: KVEntity) -> Data? {
-        try? encoder.encode(entity)
+    open func encodeEntity(entity: KVEntity) -> Data? {
+        guard let jsonData = try? encoder.encode(entity)
+        else { return .none }
+
+        return try? self.cryptoProvider?.encrypt(data: jsonData)
+            ?? jsonData
     }
 
-    public final func decodeEntity(_ dbObject: Any) -> KVEntity? {
+    open func decodeEntity(_ dbObject: Any) -> KVEntity? {
         guard let entity = dbObject as? DBEntity else {
             return nil
         }
+        let jsonData = (try? self.cryptoProvider?.decrypt(data: entity.value))
+            ?? entity.value
 
-        return try? self.decoder.decode(KVEntity.self, from: entity.value)
+        return try? self.decoder.decode(KVEntity.self, from: jsonData)
     }
     
     open func createDbEntity(entity: KVEntity, context: NSManagedObjectContext) throws {

@@ -15,7 +15,7 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
         self.bgContext = persistenceManager.backgroundContext
     }
 
-    public final func read<Model>(from entity: CDKeyValueEntity.Type) throws
+    open func read<Model>(from entity: CDKeyValueEntity.Type) throws
             -> Model? where Model: KVEntity {
 
         print("***** read started: \(entity.self)")
@@ -29,7 +29,7 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
         return entity
     }
 
-    public final func upsert<Model>(to entity: CDKeyValueEntity.Type, _ item: Model) throws
+    open func upsert<Model>(to entity: CDKeyValueEntity.Type, _ item: Model) throws
             where Model: KVEntity {
 
         print("***** upsert start: \(entity.self)")
@@ -41,7 +41,7 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
         print("***** upsert end: \(entity.self)")
     }
 
-    public final func delete(by key: KVEntityId, from entity: CDKeyValueEntity.Type) throws {
+    open func delete(by key: KVEntityId, from entity: CDKeyValueEntity.Type) throws {
         print("***** delete by key \(key) start: \(entity.self)")
         try bgContext.execute(entity.deleteRequest(predicate: CDFPredicate.key(operation: .equals(key: key))))
         print("***** delete by key \(key) end: \(entity.self)")

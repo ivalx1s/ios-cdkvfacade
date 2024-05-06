@@ -15,7 +15,7 @@ open class CDKeyValuePrefsDatedStore: KeyValuePrefsDatedStore {
         self.bgContext = persistenceManager.backgroundContext
     }
 
-    public final func read<Model>(from entity: CDKeyValueDatedEntity.Type) throws
+    open func read<Model>(from entity: CDKeyValueDatedEntity.Type) throws
             -> Model? where Model: KVEntity {
         try internalRead(
                 from: entity,
@@ -23,7 +23,7 @@ open class CDKeyValuePrefsDatedStore: KeyValuePrefsDatedStore {
         )
     }
 
-    public final func read<Model>(from entity: CDKeyValueDatedEntity.Type, predicate: CDFPredicate) throws
+    open func read<Model>(from entity: CDKeyValueDatedEntity.Type, predicate: CDFPredicate) throws
             -> Model? where Model: KVEntity {
 
         try internalRead(
@@ -35,7 +35,7 @@ open class CDKeyValuePrefsDatedStore: KeyValuePrefsDatedStore {
         )
     }
 
-    public final func upsert<Model>(entity: CDKeyValueDatedEntity.Type, _ item: Model) throws
+    open func upsert<Model>(entity: CDKeyValueDatedEntity.Type, _ item: Model) throws
             where Model: KVEntity {
 
         print("***** upsert start: \(entity.self)")
@@ -47,13 +47,13 @@ open class CDKeyValuePrefsDatedStore: KeyValuePrefsDatedStore {
         print("***** upsert end: \(entity.self)")
     }
 
-    public final func delete(by key: KVEntityId, from entity: CDKeyValueEntity.Type) throws {
+    open func delete(by key: KVEntityId, from entity: CDKeyValueEntity.Type) throws {
         print("***** delete by key \(key) start: \(entity.self)")
         try bgContext.execute(entity.deleteRequest(predicate: CDFPredicate.key(operation: .equals(key: key))))
         print("***** delete by key \(key) end: \(entity.self)")
     }
 
-    private final func internalRead<Model>(from entity: CDKeyValueDatedEntity.Type, predicate: CDFPredicate) throws
+    open func internalRead<Model>(from entity: CDKeyValueDatedEntity.Type, predicate: CDFPredicate) throws
             -> Model? where Model: KVEntity {
 
         print("***** read started: \(entity.self)")

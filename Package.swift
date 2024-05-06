@@ -1,11 +1,9 @@
 // swift-tools-version: 5.6
 
-
-
 import PackageDescription
 
 let package = Package(
-    name: "cdkvfacade-ios",
+    name: "ios-cdkvfacade",
     platforms: [
         .iOS(.v15),
         .macOS(.v12)
@@ -13,7 +11,6 @@ let package = Package(
     products: [
         .library(
             name: "CoreDataKVFacade",
-            type: .dynamic,
             targets: ["CoreDataKVFacade"]
         ),
     ],
