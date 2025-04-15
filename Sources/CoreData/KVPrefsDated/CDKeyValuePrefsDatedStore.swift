@@ -60,7 +60,11 @@ open class CDKeyValuePrefsDatedStore: KeyValuePrefsDatedStore {
 
         let entity: Model? = try viewContext
                 .fetch(entity.fetchRequest(predicate: predicate))
-                .compactMap(decodeEntity).first
+                .compactMap {
+                    let model: Model? = try decodeEntity($0)
+                    return model
+                }
+                .first
 
         print("***** read ended: \(entity.self) \(entity != nil)")
 
