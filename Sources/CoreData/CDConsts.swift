@@ -1,11 +1,11 @@
 import Foundation
 
 struct CDConsts {
-    static var keyFieldName = "key"
-    static var foreignKeyFieldName = "foreignKey"
-    static var valueFieldName = "value"
-    static var createdAtFieldName = "createdAt"
+    static let keyFieldName = "key"
+    static let foreignKeyFieldName = "foreignKey"
+    static let valueFieldName = "value"
+    static let createdAtFieldName = "createdAt"
 
-    static var keyDefaultValue = "undefined"
-    static var valueDefaultValue = Data()
+    static let keyDefaultValue = "undefined"
+    static let valueDefaultValue = Data()
 }

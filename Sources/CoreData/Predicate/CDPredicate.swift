@@ -57,3 +57,5 @@ public indirect enum CDFPredicate {
         case createDate
     }
 }
+
+extension CDFPredicate.PType: Sendable { }

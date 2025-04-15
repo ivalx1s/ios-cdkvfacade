@@ -22,7 +22,11 @@ open class CDKeyValuePrefsStore: KeyValuePrefsStore {
 
         let entity: Model? = try viewContext
                 .fetch(entity.fetchRequest(predicate: CDFPredicate.key(operation: .equals(key: Model.key))))
-                .compactMap(decodeEntity).first
+                .compactMap {
+                    let model: Model? = try decodeEntity($0)
+                    return model
+                }
+                .first
 
             print("***** read ended: \(entity.self) \(entity != nil)")
 
