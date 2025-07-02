@@ -8,9 +8,7 @@ open class CDKeyValueWithForeignKeyEntityStore<DBEntity, Model>
     public typealias KVEntity = Model
 
     open override func createDbEntity(entity: KVEntity, context: NSManagedObjectContext) throws {
-        guard let data = encodeEntity(entity: entity) else {
-            throw CDError.failedToEncodeEntity
-        }
+        let data = try encodeEntity(entity: entity)
 
         let newItem = DBEntity(context: context)
         newItem.key = entity.key

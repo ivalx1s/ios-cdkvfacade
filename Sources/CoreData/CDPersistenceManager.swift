@@ -11,19 +11,27 @@ open class CDPersistenceManager {
     private let container: NSPersistentContainer
     internal let cryptoProvider: ICryptoProvider?
 
-    public init(
+    public init?(
         container: NSPersistentContainer,
         cryptoProvider: ICryptoProvider? = .none,
-        storingType: StoringType = .appBundle(folder: .documentDirectory)
+        storingType: StoringType = .appBundle(folder: .documentDirectory),
+        logger: CDLogger = DefaultCDLogger.shared
     ) {
         self.container = container
         self.cryptoProvider = cryptoProvider
 
-        container.persistentStoreDescriptions.first?.url = Self.getDbStoringUrl(dbName: container.name, storingType: storingType)
+        guard let storingUrl = Self.getDbStoringUrl(dbName: container.name, storingType: storingType)
+        else {
+            logger.log("Failed to resolve storingUrl for container \(container.name), \(storingType)")
+            return
+        }
+
+        container.persistentStoreDescriptions.first?.url = storingUrl
 
         container.loadPersistentStores { (storeDescription, error) in
             if let error = error as NSError? {
-                fatalError("Unresolved error \(error), \(error.userInfo)")
+                logger.log("Unresolved error \(error), \(error.userInfo)")
+                return
             }
         }
         container.viewContext.automaticallyMergesChangesFromParent = true
@@ -59,7 +67,7 @@ open class CDPersistenceManager {
 }
 
 extension CDPersistenceManager {
-    private static func getDbStoringUrl(dbName: String, storingType : StoringType) -> URL {
+    private static func getDbStoringUrl(dbName: String, storingType : StoringType) -> URL? {
         switch storingType {
         case let .appBundle(folder):
             return Self.localStoreUrl(for: dbName, in: folder)
@@ -68,21 +76,15 @@ extension CDPersistenceManager {
         }
     }
 
-    private static func localStoreUrl(for dbName: String, in folder: FileManager.SearchPathDirectory) -> URL {
-        let urls = FileManager.default.urls(for: folder, in: .userDomainMask)
-        guard let docURL = urls.last else {
-            fatalError("Error fetching document directory")
-        }
-        let storeURL = docURL.appendingPathComponent("\(dbName).sqlite")
-        return storeURL
+    private static func localStoreUrl(for dbName: String, in folder: FileManager.SearchPathDirectory) -> URL? {
+        var docURL = FileManager.default.urls(for: folder, in: .userDomainMask).last
+        docURL = docURL?.appendingPathComponent("\(dbName).sqlite")
+        return docURL
     }
 
-    private static func sharedAppGroupStoreUrl(dbName: String, groupId: String) -> URL {
+    private static func sharedAppGroupStoreUrl(dbName: String, groupId: String) -> URL? {
         var storeURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupId)
         storeURL = storeURL?.appendingPathComponent("\(dbName).sqlite")
-        guard let storeURL else {
-            fatalError("Error fetching app group directory for \(groupId)")
-        }
         return storeURL
     }
 }

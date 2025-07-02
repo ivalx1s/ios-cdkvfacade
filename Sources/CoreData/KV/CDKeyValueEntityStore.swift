@@ -9,13 +9,30 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
     private let decoder: JSONDecoder = .init()
     private let encoder: JSONEncoder = .init()
 
-    var viewContext: NSManagedObjectContext { persistenceManager.viewContext }
-    var bgContext: NSManagedObjectContext { persistenceManager.backgroundContext }
-    private var persistenceManager: CDPersistenceManager
-    private var cryptoProvider: ICryptoProvider? { persistenceManager.cryptoProvider }
+    var viewContext: NSManagedObjectContext {
+        get throws { switch persistenceManager?.viewContext {
+            case let .some(ctx): ctx
+            case .none: throw CDError.noPersistenceManager
+        }}
+    }
 
-    public init(persistenceManager: CDPersistenceManager) {
+    var bgContext: NSManagedObjectContext {
+        get throws { switch persistenceManager?.backgroundContext {
+            case let .some(ctx): ctx
+            case .none: throw CDError.noPersistenceManager
+        }}
+    }
+
+    private var persistenceManager: CDPersistenceManager?
+    private var logger: CDLogger
+    private var cryptoProvider: ICryptoProvider? { persistenceManager?.cryptoProvider }
+
+    public init(
+        persistenceManager: CDPersistenceManager?,
+        logger: CDLogger = DefaultCDLogger.shared
+    ) {
         self.persistenceManager = persistenceManager
+        self.logger = logger
     }
 
     open func read(predicate: CDFPredicate) throws -> [KVEntity] {
@@ -42,13 +59,13 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
     }
 
     func internalReadAll(context: NSManagedObjectContext, predicate: CDFPredicate?, fetchOptions: CDFetchOptions?, sortDescriptions: [CDSortDescriptor]) throws -> [Model] {
-        print("***** read started: \(DBEntity.meta.entityName)")
+        logger.log("***** read started: \(DBEntity.meta.entityName)")
 
         let entities: [KVEntity] = try context
             .fetch(DBEntity.fetchRequest(predicate: predicate, fetchOptions: fetchOptions, sortDescriptors: sortDescriptions))
             .compactMap(decodeEntity)
 
-        print("***** read ended: \(DBEntity.meta.entityName) \(entities.count)")
+        logger.log("***** read ended: \(DBEntity.meta.entityName) \(entities.count)")
 
         return entities
     }
@@ -56,13 +73,13 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
     @available(iOS 15, macOS 12, *)
     private func internalInsert(context: NSManagedObjectContext, entities: [KVEntity]) throws {
         try context.performAndWait {
-            print("***** insert started: \(DBEntity.meta.entityName)")
+            logger.log("***** insert started: \(DBEntity.meta.entityName)")
             try entities
                     .forEach { //todo is it possible to use concurrent foreach
                          try createDbEntity(entity: $0, context: context)
                     }
             try context.save()
-            print("***** inserted: \(DBEntity.meta.entityName) \(entities.count)")
+            logger.log("***** inserted: \(DBEntity.meta.entityName) \(entities.count)")
         }
     }
 
@@ -73,7 +90,7 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
     open func upsert(_ entities: [KVEntity]) throws {
         guard !entities.isEmpty else { return }
 
-        let context = bgContext
+        let context = try bgContext
         try internalDelete(
                 context: context,
                 predicate: .key(operation: .containedIn(keys: entities.map {$0.key}))
@@ -110,33 +127,40 @@ open class CDKeyValueEntityStore<DBEntity, Model> : KVEntityStore
     }
 
     private final func internalDelete(context: NSManagedObjectContext, predicate: CDFPredicate?) throws {
-        print("***** deleteAll start: \(DBEntity.meta.entityName)")
+        logger.log("***** deleteAll start: \(DBEntity.meta.entityName)")
         try! context.execute(DBEntity.deleteRequest(predicate: predicate))
-        print("***** deleteAll end: \(DBEntity.meta.entityName)")
+        logger.log("***** deleteAll end: \(DBEntity.meta.entityName)")
     }
 
-    open func encodeEntity(entity: KVEntity) -> Data? {
-        guard let jsonData = try? encoder.encode(entity)
-        else { return .none }
+    open func encodeEntity(entity: KVEntity) throws -> Data {
+        let jsonData = try encoder.encode(entity)
 
-        return try? self.cryptoProvider?.encrypt(data: jsonData)
-            ?? jsonData
+        return switch self.cryptoProvider {
+            case let .some(cryptoProvider): try cryptoProvider.encrypt(data: jsonData)
+            case .none: jsonData
+        }
     }
 
     open func decodeEntity(_ dbObject: Any) -> KVEntity? {
-        guard let entity = dbObject as? DBEntity else {
-            return nil
-        }
-        let jsonData = (try? self.cryptoProvider?.decrypt(data: entity.value))
-            ?? entity.value
+        do {
+            guard let entity = dbObject as? DBEntity else {
+                return .none
+            }
 
-        return try? self.decoder.decode(KVEntity.self, from: jsonData)
+            let jsonData = switch self.cryptoProvider {
+                case let .some(cryptoProvider): try cryptoProvider.decrypt(data: entity.value)
+                case .none: entity.value
+            }
+
+            return try self.decoder.decode(KVEntity.self, from: jsonData)
+        } catch {
+            logger.log("failed to decrypt entity: \(dbObject), error: \(error)")
+            return .none
+        }
     }
     
     open func createDbEntity(entity: KVEntity, context: NSManagedObjectContext) throws {
-        guard let data = encodeEntity(entity: entity) else {
-            throw CDError.failedToEncodeEntity
-        }
+        let data = try encodeEntity(entity: entity)
 
         let newItem = DBEntity(context: context)
         newItem.key = entity.key
